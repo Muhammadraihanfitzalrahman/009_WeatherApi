@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Geolocation</title>
+    <style>
+        :root {
+            --bg: #e8f0f3;
+            --card: #ffffff;
+            --text: #12303b;
+            --muted: #5f7b86;
+            --tile: #f0f5f7;
+            --line: #cfdde3;
+            --navy: #0f3d4c;
+            --teal: #2a9d8f;
+            --amber: #ffb703;
+            --red: #d62839;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b1a21;
+                --card: #12262f;
+                --text: #e6f1f4;
+                --muted: #8fb0bb;
+                --tile: #183440;
+                --line: #264854;
+                --navy: #2a9d8f;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 28px 16px;
+            font-family: system-ui, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .card {
+            max-width: 540px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: var(--card);
+            border-radius: 18px;
+            box-shadow: 0 14px 40px rgba(6, 30, 40, .22);
+        }
+
+        /* ---------- Peta mini ---------- */
+        .peta {
+            position: relative;
+            aspect-ratio: 2 / 1;
+            overflow: hidden;
+            background-color: #0c3441;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, .08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .08) 1px, transparent 1px),
+                radial-gradient(ellipse at 50% 40%, #17627a 0, #0c3441 75%);
+            background-size: calc(100% / 12) calc(100% / 6), calc(100% / 12) calc(100% / 6), 100% 100%;
+        }
+
+        .peta::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(transparent 45%, rgba(4, 20, 28, .75));
+        }
+
+        .khatulistiwa {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            border-top: 1px dashed rgba(255, 255, 255, .4);
+        }
+
+        .nol {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            border-left: 1px dashed rgba(255, 255, 255, .4);
+        }
+
+        .gx,
+        .gy {
+            position: absolute;
+            background: rgba(255, 183, 3, .55);
+            opacity: 0;
+            transition: left 1s cubic-bezier(.2, .8, .2, 1), top 1s cubic-bezier(.2, .8, .2, 1), opacity .4s;
+        }
+
+        .gx {
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            left: 50%;
+        }
+
+        .gy {
+            left: 0;
+            right: 0;
+            height: 1px;
+            top: 50%;
+        }
+
+        .titik {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            margin: -7px 0 0 -7px;
+            border-radius: 50%;
+            background: var(--amber);
+            box-shadow: 0 0 0 4px rgba(255, 183, 3, .3);
+            opacity: 0;
+            transition: left 1s cubic-bezier(.2, .8, .2, 1), top 1s cubic-bezier(.2, .8, .2, 1), opacity .4s;
+        }
+
+        .aktif {
+            opacity: 1;
+        }
+
+        .titik.ping::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid var(--amber);
+            animation: ping 1.3s ease-out 1;
+        }
+
+        @keyframes ping {
+            to {
+                transform: scale(5);
+                opacity: 0;
+            }
+        }
+
+        .overlay {
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            bottom: 14px;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .overlay b {
+            font-size: clamp(16px, 3.6vw, 21px);
+            line-height: 1.2;
+        }
+
+        .overlay span {
+            font-size: 12px;
+            opacity: .8;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ---------- Isi ---------- */
+        .isi {
+            padding: 22px 24px 26px;
+        }
+
+        .identitas {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 18px;
+        }
+
+        .identitas h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .cari {
+            display: flex;
+            gap: 8px;
+        }
+
+        .cari input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            font-size: 16px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            outline: none;
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .cari input:focus {
+            border-color: var(--teal);
+        }
+
+        .cari button {
+            padding: 0 22px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 0;
+            border-radius: 12px;
+            background: var(--navy);
+            color: #fff;
+        }
+
+        .cari button:hover {
+            filter: brightness(1.15);
+        }
+
+        button:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--amber);
+            outline-offset: 2px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            padding: 4px 11px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .chip:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        #lokasi {
+            min-height: 20px;
+            margin: 12px 0 10px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        #lokasi.error {
+            color: var(--red);
+            font-weight: 600;
+        }
+
+        /* Wilayah bertingkat */
+        .lv {
+            padding: 9px 14px;
+            margin-bottom: 8px;
+            border-left: 5px solid;
+            border-radius: 0 12px 12px 0;
+            background: var(--tile);
+        }
+
+        .lv small,
+        .kotak small {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .lv b {
+            font-size: 20px;
+        }
+
+        .negara {
+            border-color: var(--navy);
+        }
+
+        .provinsi {
+            border-color: var(--teal);
+            margin-left: 16px;
+        }
+
+        .kecamatan {
+            border-color: var(--amber);
+            margin-left: 32px;
+        }
+
+        .kosong {
+            font-weight: 400 !important;
+            font-style: italic;
+            font-size: 16px !important;
+            color: var(--muted);
+        }
+
+        .baru {
+            animation: masuk .45s ease both;
+        }
+
+        @keyframes masuk {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+        }
+
+        /* Koordinat */
+        .koor {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .kotak {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: var(--tile);
+            min-width: 0;
+        }
+
+        .kotak b {
+            display: block;
+            font-size: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kotak em {
+            display: block;
+            margin-top: 2px;
+            font-style: normal;
+            font-size: 12px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .aksi {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .aksi button,
+        .aksi a {
+            padding: 9px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: 2px solid var(--line);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+        }
+
+        .aksi button:hover,
+        .aksi a:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        .aksi [hidden] {
+            display: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .titik,
+            .gx,
+            .gy {
+                transition: none;
+            }
+
+            .titik.ping::after,
+            .baru {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="peta">
+            <div class="khatulistiwa"></div>
+            <div class="nol"></div>
+            <div class="gx" id="gx"></div>
+            <div class="gy" id="gy"></div>
+            <div class="titik" id="titik"></div>
+            <div class="overlay">
+                <b id="judul">Peta dunia mini</b>
+                <span id="info-peta"></span>
+            </div>
+        </div>
+
+        <div class="isi">
+            <div class="identitas">
+                <h3>Nama :</h3>
+                <h3>NIM :</h3>
+            </div>
+
+            <div class="cari">
+                <input id="input-lokasi" type="text" placeholder="Lokasi, contoh: Kasihan, Bantul" value="Jakarta" />
+                <button id="btn-cari">Cari</button>
+            </div>
+            <div class="chips">
+                <button class="chip">Kasihan, Bantul</button>
+                <button class="chip">Coblong, Bandung</button>
+                <button class="chip">Tokyo</button>
+                <button class="chip">Reykjavik</button>
+            </div>
+
+            <p id="lokasi"></p>
+
+            <div class="lv negara"><small>Negara</small><b id="negara">-</b></div>
+            <div class="lv provinsi"><small>Provinsi</small><b id="provinsi">-</b></div>
+            <div class="lv kecamatan"><small>Kecamatan</small><b id="kecamatan">-</b></div>
+
+            <div class="koor">
+                <div class="kotak"><small>Longitude</small><b id="longitude">-</b><em id="dms-lon"></em></div>
+                <div class="kotak"><small>Latitude</small><b id="latitude">-</b><em id="dms-lat"></em></div>
+            </div>
+
+            <div class="aksi">
+                <button id="btn-salin" hidden>Salin koordinat</button>
+                <a id="link-maps" href="#" target="_blank" rel="noopener" hidden>Buka di Google Maps</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        let koordinat = "";
+
+        function dms(v, pos, neg) {
+            const h = v >= 0 ? pos : neg;
+            v = Math.abs(v);
+            const d = Math.floor(v);
+            const m = Math.floor((v - d) * 60);
+            const s = ((v - d) * 60 - m) * 60;
+            return `${d}° ${m}′ ${s.toFixed(1)}″ ${h}`;
+        }
+
+        function isi(id, nilai) {
+            const e = $(id);
+            const kosong = !nilai || nilai === "-";
+            e.textContent = kosong ? "Tidak tersedia di data" : nilai;
+            e.classList.toggle("kosong", kosong);
+            e.classList.remove("baru");
+            void e.offsetWidth;
+            e.classList.add("baru");
+        }
+
+        function geser(lon, lat) {
+            const x = ((lon + 180) / 360) * 100 + "%";
+            const y = ((90 - lat) / 180) * 100 + "%";
+            const t = $("titik");
+            t.style.left = x; t.style.top = y;
+            $("gx").style.left = x;
+            $("gy").style.top = y;
+            [t, $("gx"), $("gy")].forEach((e) => e.classList.add("aktif"));
+            t.classList.remove("ping");
+            setTimeout(() => t.classList.add("ping"), 1000);
+        }
+
+        function cariLokasi() {
+            const q = $("input-lokasi").value.trim();
+            const info = $("lokasi");
+            if (!q) return;
+
+            info.className = "";
+            info.textContent = "Mencari...";
+
+            fetch("/api/lokasi?q=" + encodeURIComponent(q))
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+
+                    if (data.message) {
+                        info.className = "error";
+                        info.textContent = data.message + ". Coba nama yang lebih spesifik.";
+                        return;
+                    }
+
+                    // mendukung format server lama (koordinat) dan baru (longitude/latitude)
+                    const lon = Number(data.longitude ?? (data.koordinat ? data.koordinat[0] : NaN));
+                    const lat = Number(data.latitude ?? (data.koordinat ? data.koordinat[1] : NaN));
+
+                    info.textContent = "";
+                    $("judul").textContent = data.lokasi || data.kota || q;
+                    isi("negara", data.negara);
+                    isi("provinsi", data.provinsi);
+                    isi("kecamatan", data.kecamatan);
+
+                    if (isNaN(lon) || isNaN(lat)) {
+                        info.className = "error";
+                        info.textContent = "Koordinat tidak diterima dari server.";
+                        return;
+                    }
+
+                    $("longitude").textContent = lon.toFixed(6);
+                    $("latitude").textContent = lat.toFixed(6);
+                    $("dms-lon").textContent = dms(lon, "BT", "BB");
+                    $("dms-lat").textContent = dms(lat, "LU", "LS");
+                    $("info-peta").textContent = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+
+                    koordinat = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    $("link-maps").href = `https://www.google.com/maps?q=${lat},${lon}`;
+                    $("btn-salin").hidden = false;
+                    $("link-maps").hidden = false;
+
+                    geser(lon, lat);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    info.className = "error";
+                    info.textContent = "Tidak dapat terhubung ke server. Pastikan server.js sudah berjalan.";
+                });
+        }
+
+        $("btn-cari").addEventListener("click", cariLokasi);
+        $("input-lokasi").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") cariLokasi();
+        });
+        document.querySelectorAll(".chip").forEach((c) => {
+            c.addEventListener("click", () => {
+                $("input-lokasi").value = c.textContent;
+                cariLokasi();
+            });
+        });
+        $("btn-salin").addEventListener("click", () => {
+            const b = $("btn-salin");
+            navigator.clipboard.writeText(koordinat).then(() => {
+                b.textContent = "Tersalin";
+                setTimeout(() => (b.textContent = "Salin koordinat"), 1500);
+            }).catch(() => (b.textContent = "Gagal menyalin"));
+        });
+
+        cariLokasi();
+    </script>
+</body>
+
+</html>
